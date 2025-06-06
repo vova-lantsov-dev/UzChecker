@@ -57,6 +57,8 @@ jobs:
 
       - name: Publish linux-x64 image to Docker
         run: |
+          dotnet add package Microsoft.NET.Build.Containers
+
           dotnet publish -c Release \
           --os linux \
           --arch x64 \
