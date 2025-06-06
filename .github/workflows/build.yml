@@ -1,0 +1,102 @@
+﻿name: Build and publish BE services
+on:
+  push:
+    paths: [ "UzChecker.AppHost/**", ".github/workflows/build.yml" ]
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths: [ "UzChecker.AppHost/**", ".github/workflows/build.yml" ]
+  create:
+
+permissions:
+  packages: write
+  contents: read
+  checks: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUILD_CONFIG: 'Release'
+      SOLUTION: 'UzChecker.sln'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore $SOLUTION
+
+      - name: Build
+        run: dotnet build $SOLUTION --configuration $BUILD_CONFIG --no-restore
+
+  publish_host:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare Docker tags
+        id: prepare
+        run: |
+          ref=$(echo ${GITHUB_REF_NAME} | tr '/_' '-')
+          echo "::set-output name=tags_list::${{ github.sha }};${ref}"
+          echo "::set-output name=tags_list_amd64::${{ github.sha }}-amd64;${ref}-amd64"
+          echo "::set-output name=tags_list_arm64::${{ github.sha }}-arm64;${ref}-arm64"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Publish linux-x64 image to Docker
+        run: |
+          dotnet publish -c Release \
+          --os linux \
+          --arch x64 \
+          -p PublishProfile=DefaultContainer \
+          -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_amd64 }}"'
+        working-directory: UzChecker.AppHost/
+
+      - name: Publish linux-arm64 image to Docker
+        run: |
+          dotnet publish -c Release \
+          --os linux \
+          --arch arm64 \
+          -p PublishProfile=DefaultContainer \
+          -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_arm64 }}"'
+        working-directory: UzChecker.AppHost/
+
+      - name: Publish manifest images to Docker (amd64 and arm64 combined together)
+        run: |
+          DOCKER_CLI_EXPERIMENTAL=enabled
+          
+          tags_arr=($(echo "${{ steps.prepare.outputs.tags_list }}" | tr ";" "\n"))
+          
+          for tag in "${tags_arr[@]}"; do
+          
+            docker manifest create \
+              ghcr.io/uz-checker/host:${tag} \
+              ghcr.io/uz-checker/host:${tag}-amd64 \
+              ghcr.io/uz-checker/host:${tag}-arm64
+          
+            docker manifest annotate \
+              ghcr.io/uz-checker/host:${tag} \
+              --arch amd64 \
+              ghcr.io/uz-checker/host:${tag}-amd64
+          
+            docker manifest annotate \
+              ghcr.io/uz-checker/host:${tag} \
+              --arch arm64 \
+              ghcr.io/uz-checker/host:${tag}-arm64
+          
+            docker manifest push \
+              ghcr.io/uz-checker/host:${tag}
+          
+          done

@@ -1,0 +1,41 @@
+﻿name: Deploy services to remote server
+on:
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'A Docker tag to deploy (e.g. "dev" to deploy uz-checker/host:dev). If not set - selected branch/tag/commit will be used.'
+        required: false
+        type: string
+
+jobs:
+  deploy_host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparce-checkout: |
+            .github/actions
+
+      - name: Prepare Docker tag to deploy
+        id: prepare
+        uses: ./.github/actions/prepare-docker-tag
+        with:
+          docker_tag: ${{ inputs.docker_tag }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo docker pull ghcr.io/uz-checker/host:${{ steps.prepare.outputs.final_tag }}
+
+            sudo docker stop uz-checker-host || true
+
+            sudo docker run -d \
+              --name uz-checker-host \
+              -p 127.0.0.1:25001:80 \
+              -e "TelegramOptions__BotToken=${{ secrets.TELEGRAM_BOT_TOKEN }}" \
+              --restart unless-stopped \
+              ghcr.io/uz-checker/host:${{ steps.prepare.outputs.final_tag }}

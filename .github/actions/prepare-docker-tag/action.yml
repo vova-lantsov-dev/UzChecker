@@ -1,0 +1,25 @@
+﻿name: 'Prepare Docker tag'
+inputs:
+  docker_tag:
+    description: 'A Docker tag to deploy (e.g. "dev" to deploy uz-checker/host:dev). If not set - selected branch/tag/commit will be used.'
+    required: false
+    type: string
+outputs:
+  final_tag:
+    description: "A final Docker tag to deploy"
+    value: ${{ steps.prepare.outputs.final_tag }}
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare Docker tag to deploy
+      id: prepare
+      run: |
+        if [[ -z "${{ inputs.docker_tag }}" ]]; then
+          # If no deploy_tag is provided, create a tag from the selected branch
+          ref=$(echo ${GITHUB_REF_NAME} | tr '/_' '-')
+          echo "final_tag=${ref}" >> $GITHUB_OUTPUT
+        else
+          # If a deploy_tag is provided, use it
+          echo "final_tag=${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
+        fi
+      shell: bash

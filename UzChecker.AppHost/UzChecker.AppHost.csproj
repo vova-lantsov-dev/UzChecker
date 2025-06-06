@@ -10,6 +10,19 @@
         <UserSecretsId>8b672d51-b299-4f93-ad4a-30468464a08d</UserSecretsId>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <IsPublishable>true</IsPublishable>
+        <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+
+        <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-alpine3.19-composite</ContainerBaseImage>
+        <ContainerRegistry>ghcr.io</ContainerRegistry>
+        <ContainerRepository>uz-checker/host</ContainerRepository>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContainerLabel Include="org.opencontainers.image.source" Value="https://github.com/vova-lantsov-dev/UzChecker"/>
+    </ItemGroup>
+
     <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
