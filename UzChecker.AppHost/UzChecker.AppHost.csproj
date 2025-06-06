@@ -14,7 +14,7 @@
         <IsPublishable>true</IsPublishable>
         <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 
-        <ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:8.0-alpine3.19-composite</ContainerBaseImage>
+        <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:8.0-alpine3.19-composite</ContainerBaseImage>
         <ContainerRegistry>ghcr.io</ContainerRegistry>
         <ContainerRepository>uz-checker/host</ContainerRepository>
     </PropertyGroup>

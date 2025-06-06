@@ -48,9 +48,9 @@ jobs:
         id: prepare
         run: |
           ref=$(echo ${GITHUB_REF_NAME} | tr '/_' '-')
-          echo "::set-output name=tags_list::${{ github.sha }};${ref}"
-          echo "::set-output name=tags_list_amd64::${{ github.sha }}-amd64;${ref}-amd64"
-          echo "::set-output name=tags_list_arm64::${{ github.sha }}-arm64;${ref}-arm64"
+          echo "tags_list=${{ github.sha }};${ref}"
+          echo "tags_list_amd64=${{ github.sha }}-amd64;${ref}-amd64"
+          echo "tags_list_arm64=${{ github.sha }}-arm64;${ref}-arm64"
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
           dotnet publish -c Release \
           --os linux \
           --arch x64 \
-          -p PublishContainer \
+          /t:PublishContainer \
           -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_amd64 }}"'
         working-directory: UzChecker.AppHost/
 
@@ -69,7 +69,7 @@ jobs:
           dotnet publish -c Release \
           --os linux \
           --arch arm64 \
-          -p PublishContainer \
+          /t:PublishContainer \
           -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_arm64 }}"'
         working-directory: UzChecker.AppHost/
 
