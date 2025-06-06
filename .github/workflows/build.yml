@@ -57,12 +57,10 @@ jobs:
 
       - name: Publish linux-x64 image to Docker
         run: |
-          dotnet add package Microsoft.NET.Build.Containers
-
           dotnet publish -c Release \
           --os linux \
           --arch x64 \
-          /t:PublishContainer \
+          /p:PublishProfile=DefaultContainer \
           -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_amd64 }}"'
         working-directory: UzChecker.AppHost/
 
@@ -71,7 +69,7 @@ jobs:
           dotnet publish -c Release \
           --os linux \
           --arch arm64 \
-          /t:PublishContainer \
+          /p:PublishProfile=DefaultContainer \
           -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_arm64 }}"'
         working-directory: UzChecker.AppHost/
 
