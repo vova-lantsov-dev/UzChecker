@@ -60,7 +60,7 @@ jobs:
           dotnet publish -c Release \
           --os linux \
           --arch x64 \
-          -p PublishProfile=DefaultContainer \
+          -p PublishContainer \
           -p ContainerImageTags='"${{ steps.prepare.outputs.tags_list_amd64 }}"'
         working-directory: UzChecker.AppHost/
 
