@@ -1,0 +1,7 @@
+﻿services:
+  uzchecker.apphost:
+    image: uzchecker.apphost
+    build:
+      context: .
+      dockerfile: UzChecker.AppHost/Dockerfile
+
