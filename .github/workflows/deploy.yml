@@ -29,13 +29,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo docker pull ghcr.io/uz-checker/host:${{ steps.prepare.outputs.final_tag }}
+            sudo docker pull ghcr.io/vova-lantsov-dev/uz-checker:${{ steps.prepare.outputs.final_tag }}
 
-            sudo docker stop uz-checker-host || true
+            sudo docker stop uz-checker || true
 
             sudo docker run -d \
-              --name uz-checker-host \
+              --name uz-checker \
               -p 127.0.0.1:25001:80 \
               -e "TelegramOptions__BotToken=${{ secrets.TELEGRAM_BOT_TOKEN }}" \
               --restart unless-stopped \
-              ghcr.io/uz-checker/host:${{ steps.prepare.outputs.final_tag }}
+              ghcr.io/vova-lantsov-dev/uz-checker:${{ steps.prepare.outputs.final_tag }}
