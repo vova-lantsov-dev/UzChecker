@@ -1,7 +1,7 @@
 ﻿name: 'Prepare Docker tag'
 inputs:
   docker_tag:
-    description: 'A Docker tag to deploy (e.g. "dev" to deploy uz-checker/host:dev). If not set - selected branch/tag/commit will be used.'
+    description: 'A Docker tag to deploy (e.g. "dev" to deploy vova-lantsov-dev/uz-checker:dev). If not set - selected branch/tag/commit will be used.'
     required: false
     type: string
 outputs:
