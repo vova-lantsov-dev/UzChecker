@@ -10,6 +10,7 @@ namespace UzChecker.AppHost.Services;
 internal sealed class UzApiClient : IApiClient
 {
     private readonly UzOptions _uzOptions;
+    private readonly IAPIRequestContext _api;
     private readonly ILogger<UzApiClient> _logger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -17,17 +18,17 @@ internal sealed class UzApiClient : IApiClient
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    public UzApiClient(IOptions<UzOptions> uzOptions, ILogger<UzApiClient> logger)
+    public UzApiClient(IAPIRequestContext api, IOptions<UzOptions> uzOptions, ILogger<UzApiClient> logger)
     {
         _uzOptions = uzOptions.Value;
+        _api = api;
         _logger = logger;
     }
 
-    public async ValueTask<(int fromId, int toId)> FindStationsByNameAsync(IAPIRequestContext api, string from,
-        string to,
+    public async ValueTask<(int fromId, int toId)> FindStationsByNameAsync(string from, string to,
         CancellationToken cancellationToken)
     {
-        var response = await GetAsync<List<StationResponse>>(api, "stations", cancellationToken: cancellationToken);
+        var response = await GetAsync<List<StationResponse>>("stations", cancellationToken: cancellationToken);
 
         int fromId = response.First(s => s.Name == from).Id;
         int toId = response.First(s => s.Name == to).Id;
@@ -35,10 +36,10 @@ internal sealed class UzApiClient : IApiClient
         return (fromId, toId);
     }
 
-    public async ValueTask<TripsResponse> FetchTripsAsync(IAPIRequestContext api, int fromStation, int toStation,
+    public async ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation,
         CancellationToken cancellationToken)
     {
-        return await GetAsync<TripsResponse>(api, "v3/trips", new Dictionary<string, string>
+        return await GetAsync<TripsResponse>("v3/trips", new Dictionary<string, string>
         {
             ["station_from_id"] = fromStation.ToString(),
             ["station_to_id"] = toStation.ToString(),
@@ -47,17 +48,16 @@ internal sealed class UzApiClient : IApiClient
         }, cancellationToken);
     }
 
-    public async ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(IAPIRequestContext api, int tripId,
-        string wagonClass, CancellationToken cancellationToken)
+    public async ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(int tripId, string wagonClass,
+        CancellationToken cancellationToken)
     {
         return await GetAsync<List<TripSeatResponse>>(
-            api,
             $"v2/trips/{tripId}/wagons-by-class/{Uri.EscapeDataString(wagonClass)}",
             cancellationToken: cancellationToken);
     }
 
-    private async Task<T> GetAsync<T>(IAPIRequestContext api, string url,
-        Dictionary<string, string>? queryParams = null, CancellationToken cancellationToken = default)
+    private async Task<T> GetAsync<T>(string url, Dictionary<string, string>? queryParams = null,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -65,7 +65,7 @@ internal sealed class UzApiClient : IApiClient
             ? $"?{string.Join('&', queryParams.Select(it => $"{it.Key}={Uri.EscapeDataString(it.Value)}"))}"
             : string.Empty);
 
-        var response = await api.GetAsync(finalUrl, new()
+        var response = await _api.GetAsync(finalUrl, new APIRequestContextOptions
         {
             Headers =
             [
@@ -80,7 +80,7 @@ internal sealed class UzApiClient : IApiClient
             ]
         });
         var content = await response.TextAsync();
-        
+
         cancellationToken.ThrowIfCancellationRequested();
 
         if (response.Status is >= 200 and < 300)

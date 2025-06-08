@@ -1,15 +1,14 @@
-﻿using Microsoft.Playwright;
-using UzChecker.AppHost.Models;
+﻿using UzChecker.AppHost.Models;
 
 namespace UzChecker.AppHost.Services;
 
 public interface IApiClient
 {
-    ValueTask<(int fromId, int toId)> FindStationsByNameAsync(IAPIRequestContext api, string from, string to,
+    ValueTask<(int fromId, int toId)> FindStationsByNameAsync(string from, string to,
         CancellationToken cancellationToken);
 
-    ValueTask<TripsResponse> FetchTripsAsync(IAPIRequestContext api, int fromStation, int toStation, CancellationToken cancellationToken);
+    ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation, CancellationToken cancellationToken);
 
-    ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(IAPIRequestContext api, int tripId, string wagonClass,
+    ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(int tripId, string wagonClass,
         CancellationToken cancellationToken);
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using UzChecker.AppHost.Data.Entities;
+using UzChecker.Data.Entities;
 
-namespace UzChecker.AppHost.Data;
+namespace UzChecker.Data;
 
 public sealed class UzCheckerContext : DbContext
 {

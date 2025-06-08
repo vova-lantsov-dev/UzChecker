@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace UzChecker.AppHost.Data.Entities;
+namespace UzChecker.Data.Entities;
 
 public class Seat
 {

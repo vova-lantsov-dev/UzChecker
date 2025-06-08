@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace UzChecker.AppHost.Data.Entities;
+namespace UzChecker.Data.Entities;
 
 public class Wagon
 {

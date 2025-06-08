@@ -4,9 +4,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
 using Telegram.Bot;
-using UzChecker.AppHost.Data;
 using UzChecker.AppHost.Options;
 using UzChecker.AppHost.Services;
+using UzChecker.Data;
 
 using var playwright = await Playwright.CreateAsync();
 await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -40,8 +40,6 @@ builder.Services.AddLogging();
 
 builder.Services.AddSingleton(playwright);
 builder.Services.AddSingleton(browser);
-
-builder.Services.AddSingleton<IApiClient, UzApiClient>();
 
 builder.Services.AddHostedService<WorkerService>();
 
