@@ -14,7 +14,7 @@
         <IsPublishable>true</IsPublishable>
         <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
 
-        <ContainerBaseImage>mcr.microsoft.com/dotnet/runtime:8.0-alpine3.21</ContainerBaseImage>
+        <ContainerBaseImage>mcr.microsoft.com/playwright/dotnet:v1.52.0-noble</ContainerBaseImage>
         <ContainerRegistry>ghcr.io</ContainerRegistry>
         <ContainerRepository>vova-lantsov-dev/uz-checker</ContainerRepository>
     </PropertyGroup>
