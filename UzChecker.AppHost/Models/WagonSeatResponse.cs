@@ -1,6 +1,6 @@
 ﻿namespace UzChecker.AppHost.Models;
 
-public record TripSeatResponse(
+public record WagonSeatResponse(
     string Id,
     string Number,
     string MockupName,

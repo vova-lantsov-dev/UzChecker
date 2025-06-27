@@ -2,8 +2,10 @@
 
 namespace UzChecker.AppHost.Options;
 
-public class UzOptions
+public class UzDate
 {
+    [Required]
+    public string Date { get; set; }
     [Required, MinLength(1)]
-    public UzSubscription[] Subscriptions { get; set; }
+    public string[] Trains { get; set; }
 }

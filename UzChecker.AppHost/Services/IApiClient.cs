@@ -4,11 +4,11 @@ namespace UzChecker.AppHost.Services;
 
 public interface IApiClient
 {
-    ValueTask<(int fromId, int toId)> FindStationsByNameAsync(string from, string to,
+    ValueTask<List<StationResponse>> FindStationsAsync(CancellationToken cancellationToken);
+
+    ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation, string date,
         CancellationToken cancellationToken);
 
-    ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation, CancellationToken cancellationToken);
-
-    ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(int tripId, string wagonClass,
+    ValueTask<List<WagonSeatResponse>> InspectWagonSeatsByClassAsync(int tripId, string wagonClass,
         CancellationToken cancellationToken);
 }

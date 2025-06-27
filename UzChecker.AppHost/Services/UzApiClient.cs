@@ -1,15 +1,13 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Playwright;
+using UzChecker.AppHost.Exceptions;
 using UzChecker.AppHost.Models;
-using UzChecker.AppHost.Options;
 
 namespace UzChecker.AppHost.Services;
 
 internal sealed class UzApiClient : IApiClient
 {
-    private readonly UzOptions _uzOptions;
     private readonly IAPIRequestContext _api;
     private readonly ILogger<UzApiClient> _logger;
 
@@ -18,25 +16,18 @@ internal sealed class UzApiClient : IApiClient
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    public UzApiClient(IAPIRequestContext api, IOptions<UzOptions> uzOptions, ILogger<UzApiClient> logger)
+    public UzApiClient(IAPIRequestContext api, ILogger<UzApiClient> logger)
     {
-        _uzOptions = uzOptions.Value;
         _api = api;
         _logger = logger;
     }
 
-    public async ValueTask<(int fromId, int toId)> FindStationsByNameAsync(string from, string to,
-        CancellationToken cancellationToken)
+    public async ValueTask<List<StationResponse>> FindStationsAsync(CancellationToken cancellationToken)
     {
-        var response = await GetAsync<List<StationResponse>>("stations", cancellationToken: cancellationToken);
-
-        int fromId = response.First(s => s.Name == from).Id;
-        int toId = response.First(s => s.Name == to).Id;
-
-        return (fromId, toId);
+        return await GetAsync<List<StationResponse>>("stations", cancellationToken: cancellationToken);
     }
 
-    public async ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation,
+    public async ValueTask<TripsResponse> FetchTripsAsync(int fromStation, int toStation, string date,
         CancellationToken cancellationToken)
     {
         return await GetAsync<TripsResponse>("v3/trips", new Dictionary<string, string>
@@ -44,14 +35,14 @@ internal sealed class UzApiClient : IApiClient
             ["station_from_id"] = fromStation.ToString(),
             ["station_to_id"] = toStation.ToString(),
             ["with_transfers"] = "0",
-            ["date"] = _uzOptions.Date
+            ["date"] = date
         }, cancellationToken);
     }
 
-    public async ValueTask<List<TripSeatResponse>> InspectTripSeatsAsync(int tripId, string wagonClass,
+    public async ValueTask<List<WagonSeatResponse>> InspectWagonSeatsByClassAsync(int tripId, string wagonClass,
         CancellationToken cancellationToken)
     {
-        return await GetAsync<List<TripSeatResponse>>(
+        return await GetAsync<List<WagonSeatResponse>>(
             $"v2/trips/{tripId}/wagons-by-class/{Uri.EscapeDataString(wagonClass)}",
             cancellationToken: cancellationToken);
     }
@@ -91,6 +82,12 @@ internal sealed class UzApiClient : IApiClient
 
         _logger.LogError(new Exception(content), "Failed to fetch data from {Url}. Response code: {StatusCode}",
             finalUrl, response.Status);
+
+        if (response.Status >= 500)
+        {
+            throw new UzApiServerException($"UZ services down: {response.Status}",
+                response.Status);
+        }
 
         throw new Exception("Failed to fetch data from the API.");
     }

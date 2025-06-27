@@ -40,6 +40,7 @@ builder.Services.AddLogging();
 
 builder.Services.AddSingleton(playwright);
 builder.Services.AddSingleton(browser);
+builder.Services.AddSingleton<ITelegramNotifier, DefaultTelegramNotifier>();
 
 builder.Services.AddHostedService<WorkerService>();
 
